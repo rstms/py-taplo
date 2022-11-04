@@ -2,8 +2,13 @@
 
 # https://taplo.tamasfe.dev/
 
+empty_config_toml = """
+# empty config
+"""
+
 config_toml = """
-include = []
+
+#include = [ "*" ]
 
 [formatting]
 align_comments        = true
@@ -12,7 +17,7 @@ allowed_blank_lines   = 1
 array_auto_collapse   = false
 array_auto_expand     = true
 array_trailing_comma  = true
-column_width          = 1
+column_width          = 80
 compact_arrays        = false
 compact_entries       = false
 compact_inline_tables = false
@@ -24,8 +29,10 @@ reorder_keys          = true
 trailing_newline      = true
 
 [[rule]]
-include = ["**/pyproject.toml"]
+include = [ "*/pyproject.toml" ]
+keys = ["schema"]
 
 [rule.schema]
-path=https://json.schemastore.org/pyproject.json
+path = "https://json.schemastore.org/pyproject.json"
+
 """

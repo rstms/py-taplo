@@ -9,10 +9,9 @@ from tempfile import NamedTemporaryFile
 import click
 import click.core
 
-from .taplo import Taplo
-
 from .exception_handler import ExceptionHandler
 from .shell import _shell_completion
+from .taplo import Taplo
 from .version import __timestamp__, __version__
 
 header = f"{__name__.split('.')[0]} v{__version__} {__timestamp__}"
@@ -62,29 +61,33 @@ def version(ctx):
     click.echo(ctx.obj["taplo"].version())
 
 
-@cli.command
-@click.pass_context
+@cli.command()
 @click.option(
     "-p",
     "--python",
-    "_format",
+    "output_format",
     flag_value="dict",
     help="select python dict format",
 )
 @click.option(
-    "-j", "--json", "_format", flag_value="json", help="select json format"
+    "-j",
+    "--json",
+    "output_format",
+    flag_value="json",
+    default=True,
+    help="select json format",
 )
 @click.option(
     "-t",
     "--toml",
-    "_format",
+    "output_format",
     flag_value="toml",
     help="select toml ouput format",
 )
 @click.option(
     "-r",
     "--raw",
-    "_format",
+    "output_format",
     flag_value="value",
     help="unformatted data (use with selector)",
 )
@@ -103,22 +106,31 @@ def version(ctx):
         exists=True,
         path_type=Path,
     ),
+    default="-",
 )
 @click.pass_context
-def get(ctx, _format, selector, toml_file):
+def get(ctx, selector, output_format, toml_file):
     """output toml file in the selected format, optionally selecting sections or elements"""
-    _format = _format or "json"
     if toml_file.name == "-":
         toml_file = _buffer_file(toml_file)
-    click.echo(
-        ctx.obj["taplo"].get(
-            toml_file, output_format=_format, selector=selector
-        )
-    )
+    taplo = ctx.obj["taplo"]
+    func = {
+        "json": taplo.json,
+        "dict": taplo.dict,
+        "toml": taplo.toml,
+        "value": taplo.get,
+    }
+    click.echo(func[output_format](toml_file, selector=selector))
 
 
 @cli.command
-@click.pass_context
+@click.option(
+    "-i",
+    "--in-place",
+    is_flag=True,
+    help="overwrite the file with the formatted output",
+)
+@click.option('-v', '--verbose', is_flag=True, help='verbose output')
 @click.argument(
     "toml_file",
     type=click.Path(
@@ -128,16 +140,28 @@ def get(ctx, _format, selector, toml_file):
         exists=True,
         path_type=Path,
     ),
+    default="-",
 )
-def fmt(ctx, toml_file):
+@click.pass_context
+def fmt(ctx, in_place, verbose, toml_file):
     """reformat toml file"""
     if toml_file.name == "-":
         toml_file = _buffer_file(toml_file)
-    click.echo(ctx.obj["taplo"].fmt(toml_file))
+        in_place = False
+    opts = dict(in_place=in_place)
+    if verbose:
+        opts['verbose'] = None
+    click.echo(ctx.obj["taplo"].fmt(toml_file, **opts))
 
 
 @cli.command
-@click.pass_context
+@click.option(
+    "-i",
+    "--in-place",
+    is_flag=True,
+    help="overwrite the file with the formatted output",
+)
+@click.option('-v', '--verbose', is_flag=True, help='verbose output')
 @click.argument(
     "toml_file",
     type=click.Path(
@@ -147,13 +171,19 @@ def fmt(ctx, toml_file):
         exists=True,
         path_type=Path,
     ),
+    default="-",
 )
-def lint(ctx, toml_file):
+@click.pass_context
+def lint(ctx, in_place, verbose, toml_file):
     """verify syntax of toml file writing errors to stdout"""
     taplo = ctx.obj["taplo"]
     if toml_file.name == "-":
         toml_file = _buffer_file(toml_file)
-    click.echo(taplo.lint(toml_file))
+        in_place=False
+    opts = dict(in_place=in_place)
+    if verbose:
+        opts['verbose'] = None
+    click.echo(taplo.lint(toml_file, **opts))
 
 
 if __name__ == "__main__":
