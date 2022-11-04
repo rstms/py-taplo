@@ -130,7 +130,7 @@ def get(ctx, selector, output_format, toml_file):
     is_flag=True,
     help="overwrite the file with the formatted output",
 )
-@click.option('-v', '--verbose', is_flag=True, help='verbose output')
+@click.option("-v", "--verbose", is_flag=True, help="verbose output")
 @click.argument(
     "toml_file",
     type=click.Path(
@@ -150,7 +150,7 @@ def fmt(ctx, in_place, verbose, toml_file):
         in_place = False
     opts = dict(in_place=in_place)
     if verbose:
-        opts['verbose'] = None
+        opts["verbose"] = None
     click.echo(ctx.obj["taplo"].fmt(toml_file, **opts))
 
 
@@ -161,7 +161,7 @@ def fmt(ctx, in_place, verbose, toml_file):
     is_flag=True,
     help="overwrite the file with the formatted output",
 )
-@click.option('-v', '--verbose', is_flag=True, help='verbose output')
+@click.option("-v", "--verbose", is_flag=True, help="verbose output")
 @click.argument(
     "toml_file",
     type=click.Path(
@@ -179,10 +179,10 @@ def lint(ctx, in_place, verbose, toml_file):
     taplo = ctx.obj["taplo"]
     if toml_file.name == "-":
         toml_file = _buffer_file(toml_file)
-        in_place=False
+        in_place = False
     opts = dict(in_place=in_place)
     if verbose:
-        opts['verbose'] = None
+        opts["verbose"] = None
     click.echo(taplo.lint(toml_file, **opts))
 
 
